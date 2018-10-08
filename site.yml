@@ -1,0 +1,12 @@
+---
+# This is kept as simple as possible for mock-ups development
+
+- hosts: all
+  vars:
+      host: "{{ inventory_hostname }}"
+  roles:
+    - common
+
+#- include: provision.yml
+- import_playbook: vagrant-development.yml
+#- include: deploy.yml
