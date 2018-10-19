@@ -4,15 +4,26 @@
 - hosts: development
   vars:
       host: "{{ inventory_hostname }}"
+      project_ssh_port: 50777
   roles:
     - deploy-xserver-for-development-machine
     - provision-projects-ssh-keys
-    - provision-tdd_django_ottg
-    - deploy-tdd_django_ottg
-
-- hosts: development
-  vars:
-      host: "{{ inventory_hostname }}"
-  roles:
     - deploy-functional-test-tools
-    - deploy-tdd_django_ottg-to-run-tests
+    - role: provision-django-project
+      project_port: 50778
+      project_name: tdd_django_ottg
+    - role: deploy-django-project
+      project_name: tdd_django_ottg
+      repository: git@github.com:civilian/tdd_django_ottg.git
+    - role: deploy-django-project-to-run-tests
+      project_name: tdd_django_ottg
+
+    # Installing blog_django
+    - role: provision-django-project
+      project_port: 50779
+      project_name: blog_django
+    - role: deploy-django-project
+      project_name: blog_django
+      repository: git@github.com:civilian/blog_django.git
+    - role: deploy-django-project-to-run-tests
+      project_name: blog_django

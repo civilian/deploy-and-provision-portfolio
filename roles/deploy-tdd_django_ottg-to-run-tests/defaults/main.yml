@@ -1,2 +1,0 @@
----
-site_folder: /home/{{ project.user }}/sites/{{ host }}

@@ -6,13 +6,18 @@
 Vagrant.configure(2) do |config|
     config.vm.box = 'ubuntu/bionic64'
 
-    superlists_port = 50776
-    config.vm.network "forwarded_port", guest: 80, host: superlists_port
-    config.vm.network "forwarded_port", guest: 8000, host: 50777
+    ssh_port = 50777
+    config.vm.network "forwarded_port", guest: 22, host: ssh_port, id: 'ssh'
+
+    tdd_django_ottg_port = 50778
+    config.vm.network "forwarded_port", guest: tdd_django_ottg_port, host: tdd_django_ottg_port
+
+    blog_django_port = 50779
+    config.vm.network "forwarded_port", guest: blog_django_port, host: blog_django_port
 
     config.vm.hostname = 'guest'
 
-    config.vm.synced_folder "../", "/vagrant"
+    config.vm.synced_folder ".", "/vagrant"
 
     config.vm.provider :virtualbox do |vb|
        vb.gui = true

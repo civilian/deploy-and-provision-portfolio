@@ -4,16 +4,20 @@
   file: path={{ site_folder }} state=directory
         mode=0755 owner={{ project.user }}
 
-- name: capturing the current local commit
-  local_action: command git log -n 1 --format=%H
-  register: current_local_commit
-  changed_when: false
-
 - name: pulling the repository
   git:
     repo: '{{ repository }}'
     dest: '{{ site_folder }}'
-    version: '{{ current_local_commit.stdout }}'
+
+- name: install pipenv
+  become: yes
+  command: "python3 -m pip install pipenv"
+  changed_when: false
+
+- name: create requirements.txt from Pipfile
+  script: create_requirements_file.sh
+  args:
+    chdir: "{{ site_folder }}"
 
 - name: install requirements and create virtualenv
   pip: 
@@ -24,17 +28,10 @@
   # notify:
   #   - restart gunicorn
 
-- name: create .env file with basic
-  template: 
-    backup: no
-    src: .env.j2
-    dest: '{{ site_folder }}/.env'
-    owner: '{{ project.user }}'
-
 - name: Check if DJANGO_SECRET_KEY exists in .env
-  command: grep "DJANGO_SECRET_KEY" {{ site_folder }}/.env
+  command: grep DJANGO_SECRET_KEY {{ site_folder }}/.env
   register: test_django_secret_key
-  failed_when: "test_django_secret_key.rc == 2"
+  failed_when: false
   changed_when: false
 
 - name: generate the django secret key
@@ -49,14 +46,19 @@
   register: secret_key
   when: test_django_secret_key.stdout == ""
 
-- name: add DJANGO_SECRET_KEY to .env file
-  lineinfile: 
-      dest: '{{ site_folder }}/.env'
-      line: "DJANGO_SECRET_KEY={{ secret_key.stdout }}"
+- name: eliminate the file of the django secret key
+  file:
+    state: absent
+    path: .django_secret_key
   when: test_django_secret_key.stdout == ""
-  # become: yes
-  # notify:
-  #   - restart gunicorn
+
+- name: create .env file including django secret key
+  template: 
+    backup: no
+    src: .env.j2
+    dest: '{{ site_folder }}/.env'
+    owner: '{{ project.user }}'
+  when: test_django_secret_key.stdout == ""
 
 - name: update django static files
   django_manage:
@@ -85,7 +87,7 @@
 - name: restart gunicorn
   become: yes
   systemd:
-    name=gunicorn-{{ host }}
+    name=gunicorn-{{ project_name }}
     daemon_reload=yes
     enabled=yes
     state=restarted
