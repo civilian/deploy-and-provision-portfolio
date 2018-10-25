@@ -1,0 +1,10 @@
+---
+
+- name: create the directory structure for the django project
+  file: path={{ project_root }} state=directory
+        mode=0755 owner={{ project.user }}
+
+- name: pulling the repository
+  git:
+    repo: '{{ repository }}'
+    dest: '{{ project_root }}'

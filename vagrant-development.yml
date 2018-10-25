@@ -27,3 +27,11 @@
       repository: git@github.com:civilian/blog_django.git
     - role: deploy-django-project-to-run-tests
       project_name: blog_django
+    
+    - role: deploy-competitive-programming
+      project_name: competitive-programming
+      repository: git@github.com:civilian/competitive_programing.git
+    
+    - role: deploy-domino-java
+      project_name: domino-java
+      repository: git@github.com:civilian/domino-java.git
